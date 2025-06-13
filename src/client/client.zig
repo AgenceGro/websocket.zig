@@ -439,7 +439,7 @@ fn sendHandshake(path: []const u8, key: []const u8, buf: []u8, opts: *const Clie
     }
 
     {
-        const headers = " HTTP/1.1\r\ncontent-length: 0\r\nupgrade: websocket\r\nsec-websocket-version: 13\r\nconnection: upgrade\r\nsec-websocket-key: ";
+        const headers = " HTTP/1.1\r\nupgrade: websocket\r\nsec-websocket-version: 13\r\nconnection: upgrade\r\nsec-websocket-key: ";
         end = pos + headers.len;
         @memcpy(buf[pos..end], headers);
 
