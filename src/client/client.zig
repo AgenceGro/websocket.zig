@@ -324,9 +324,27 @@ pub const Client = struct {
         @memcpy(buf[header_len..header_end], &mask);
         try self.stream.writeAll(buf[0..header_end]);
 
-        if (data.len > 0) {
-            proto.mask(&mask, data);
-            try self.stream.writeAll(data);
+        if (@import("builtin").target.os.tag == .windows) {
+            // TLS channels have a maximum frame size.
+            // On Windows, SChannel is used; its maximum frame size is `16384`. Any frame bigger
+            // than this is "undefined behavior": on Windows this breaks the websocket connection.
+            const MAX_TLS_CHUNK = 16 * 1024;
+
+            if (data.len > 0) {
+                proto.mask(&mask, data);
+
+                var off: usize = 0;
+                while (off < data.len) {
+                    const end = @min(off + MAX_TLS_CHUNK, data.len);
+                    try self.stream.writeAll(data[off..end]);
+                    off = end;
+                }
+            }
+        } else {
+            if (data.len > 0) {
+                proto.mask(&mask, data);
+                try self.stream.writeAll(data);
+            }
         }
     }
 
